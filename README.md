@@ -34,13 +34,13 @@ $ procreate-swatch-generator --help
     procreate-swatch-generator [...colors]
 
   Example
-    procreate-swatch-generator #000 'rgb(128, 128, 128)'
+    procreate-swatch-generator '#000' 'rgb(128, 128, 128)'
     // Writes ./My Awesome Swatch.swatches
 
-    procreate-swatch-generator #000 'rgb(128, 128, 128)' -f "$HOME/Dropbox/Goth Drab"
+    procreate-swatch-generator '#000' 'rgb(128, 128, 128)' -f "$HOME/Dropbox/Goth Drab"
     // Writes $HOME/Dropbox/Goth Drab.swatches
 
-    procreate-swatch-generator #000 'rgb(128, 128, 128)' -f 'Goth Drab' -o "$HOME/Dropbox"
+    procreate-swatch-generator '#000' 'rgb(128, 128, 128)' -f 'Goth Drab' -o "$HOME/Dropbox"
     // Writes ~/Dropbox/Goth Drab.swatches
 
   Options
