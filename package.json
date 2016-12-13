@@ -1,6 +1,6 @@
 {
   "name": "procreate-swatch-generator",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Generate a Procreate swatches file from a list of colors",
   "license": "MIT",
   "repository": "natecavanaugh/procreate-swatch-generator",
