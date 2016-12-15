@@ -1,5 +1,5 @@
 'use strict';
-var procreateSwatchGenerator = require('../');
+var procreateSwatchGenerator = require('../cli');
 
 var fs = require('fs');
 var sinon = require('sinon');
@@ -29,7 +29,7 @@ config[path.join(CWD, 'test/fixtures')] = {
 };
 
 describe(
-	'swatch generator',
+	'CLI',
 	function() {
 		var sandbox;
 		var mock;
@@ -43,18 +43,6 @@ describe(
 		afterEach(
 			function() {
 				sandbox.restore();
-			}
-		);
-
-		it(
-			'should only accept an array of colors',
-			function() {
-				assert.throws(
-					function() {
-						return procreateSwatchGenerator('red');
-					},
-					'Expected an array of colors with at least 1 valid color'
-				);
 			}
 		);
 

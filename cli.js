@@ -1,44 +1,90 @@
-#!/usr/bin/env node
-'use strict';
+var path = require('path');
 var _ = require('lodash');
-var meow = require('meow');
+var filenamify = _.partialRight(require('filenamify'), {replacement: '_'});
+var superb = require('superb');
 var procreateSwatchGenerator = require('./');
+// var filenamify = _.partialRight(require('filenamify'), {replacement: '_'});
+var Promise = require('bluebird');
+var isDir = Promise.promisify(require('is-dir'));
 
-var cli = meow(
-	{
-		help: [
-			'Usage',
-			'  $ procreate-swatch-generator [...colors]',
-			'',
-			'Options',
-			'  --foo Lorem ipsum. Default: false',
-			'Examples',
-			'  $ procreate-swatch-generator #000 "rgb(128, 128, 128)"',
-			'  Successfully wrote ./My Awesome Swatch.swatches',
-			'',
-			'  $ procreate-swatch-generator #000 "rgb(128, 128, 128)" -f "/Users/me/Dropbox/Goth Drab"',
-			'  Successfully wrote /Users/me/Dropbox/Goth Drab.swatches',
-			'',
-			'  $ procreate-swatch-generator #000 "rgb(128, 128, 128)" -f "Goth Drab" -o "/Users/me/Dropbox/"',
-			'  Successfully wrote /Users/me/Dropbox/Goth Drab.swatches',
-			''
-		]
-	},
-	{
-		alias: {
-			f: 'filename',
-			o: 'outputDirectory',
-		}
-	}
-);
+var fs = Promise.promisifyAll(require('fs'));
 
-procreateSwatchGenerator(cli.input, cli.flags).then(
-	function(filePath) {
-		console.log('Wrote swatch file "%s"!', filePath);
+var randomFilename = function() {
+	return filenamify(_.startCase('My ' + superb() + ' Swatch'));
+};
+
+var validateDirectory = function(directory) {
+	var originalVal = _.constant(directory);
+
+	return Promise.resolve(directory)
+		.then(isDir)
+		.then(originalVal)
+		.catch(
+			function(err) {
+				originalVal = process.cwd;
+
+				return originalVal();
+			}
+		)
+		.then(
+			function(directory) {
+				return fs.accessAsync(directory, fs.constants.W_OK);
+			}
+		)
+		.then(
+			function() {
+				return originalVal();
+			}
+		);
+};
+
+var validateFilename = function(filename, directory) {
+	var filePath = path.join(directory, filenamify(filename + '.swatches'));
+
+	return fs.accessAsync(filePath)
+			.then(
+				function() {
+					// There was no error, which means the file exists
+					// so we'll need to keep trying
+					return validateFilename(randomFilename(), directory);
+				}
+			)
+			// if there is an error, it means the name doesn't exist
+			// so let's use that
+			.catch(_.constant(filePath));
+};
+
+module.exports = function(input, options) {
+	if (_.isString(options)) {
+		options = {
+			filename: options
+		};
 	}
-)
-.catch(
-	function(err) {
-		console.error(err.message);
+
+	options = options || {};
+
+	var filename = options.filename;
+	var outputDirectory = options.outputDirectory;
+
+	if (filename && !outputDirectory) {
+		outputDirectory = path.dirname(filename);
+		filename = path.basename(filename, '.swatches');
 	}
-);
+
+	if (!filename) {
+		filename = randomFilename();
+	}
+
+	return validateDirectory(outputDirectory)
+		.then(_.partial(validateFilename, filename))
+		.then(
+			function(filePath) {
+				var name = path.basename(filePath, '.swatches');
+
+				return {
+					stream: procreateSwatchGenerator(input, name),
+					filePath: filePath
+				};
+			}
+		);
+};
