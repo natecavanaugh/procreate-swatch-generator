@@ -100,9 +100,9 @@ var createZip = function(filePath, obj) {
 
 	zip.addBuffer(buffer, 'Swatches.json');
 
-	zip.outputStream.pipe(fs.createWriteStream(filePath));
-
 	zip.end();
+
+	zip.outputStream.pipe(fs.createWriteStream(filePath));
 };
 
 module.exports = function(colors, options) {
